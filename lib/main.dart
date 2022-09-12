@@ -10,15 +10,19 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late AudioPlayer player;
+  late AudioPlayer player2;
+
   @override
   void initState() {
     super.initState();
     player = AudioPlayer();
+    player2 = AudioPlayer();
   }
 
   @override
   void dispose() {
     player.dispose();
+    player2.dispose();
     super.dispose();
   }
 
