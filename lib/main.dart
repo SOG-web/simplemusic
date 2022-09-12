@@ -36,7 +36,10 @@ class _MyAppState extends State<MyApp> {
             children: [
               ElevatedButton(
                 onPressed: () async {
-                  await player.setAsset('assets/audio/moo.mp3');
+                  // await player.setAsset('assets/audio/moo.mp3'); // play form assets folder
+                  const url =
+                      'https://www.applesaucekids.com/sound%20effects/moo.mp3';
+                  await player.setUrl(url);
                   player.play();
                 },
                 child: const Text('Cow'),
@@ -44,8 +47,11 @@ class _MyAppState extends State<MyApp> {
               const SizedBox(width: 10),
               ElevatedButton(
                 onPressed: () async {
-                  await player.setAsset('assets/audio/horse.mp3');
-                  player.play();
+                  // await player.setAsset('assets/audio/horse.mp3'); // play form assets folder
+                  const url =
+                      'https://www.applesaucekids.com/sound%20effects/horse_whinney_2.mp3';
+                  await player2.setUrl(url);
+                  player2.play();
                 },
                 child: const Text('Horse'),
               ),
