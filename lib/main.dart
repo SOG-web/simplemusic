@@ -1,28 +1,28 @@
+import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
+import 'page_manager.dart';
 
-void main() => runApp(MyApp());
+void main() => runApp(const MyApp());
 
 class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-  late AudioPlayer player;
-  late AudioPlayer player2;
+  late final PageManager _pageManager;
 
   @override
   void initState() {
     super.initState();
-    player = AudioPlayer();
-    player2 = AudioPlayer();
+    _pageManager = PageManager();
   }
 
   @override
   void dispose() {
-    player.dispose();
-    player2.dispose();
+    _pageManager.dispose();
     super.dispose();
   }
 
@@ -30,30 +30,46 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        body: Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+        body: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
             children: [
-              ElevatedButton(
-                onPressed: () async {
-                  // await player.setAsset('assets/audio/moo.mp3'); // play form assets folder
-                  const url =
-                      'https://www.applesaucekids.com/sound%20effects/moo.mp3';
-                  await player.setUrl(url);
-                  player.play();
+              const Spacer(),
+              ValueListenableBuilder<ProgressBarState>(
+                valueListenable: _pageManager.progressNotifier,
+                builder: (_, value, __) {
+                  return ProgressBar(
+                    progress: value.current,
+                    buffered: value.buffered,
+                    total: value.total,
+                  );
                 },
-                child: const Text('Cow'),
               ),
-              const SizedBox(width: 10),
-              ElevatedButton(
-                onPressed: () async {
-                  // await player.setAsset('assets/audio/horse.mp3'); // play form assets folder
-                  const url =
-                      'https://www.applesaucekids.com/sound%20effects/horse_whinney_2.mp3';
-                  await player2.setUrl(url);
-                  player2.play();
+              ValueListenableBuilder<ButtonState>(
+                valueListenable: _pageManager.buttonNotifier,
+                builder: (_, value, __) {
+                  switch (value) {
+                    case ButtonState.loading:
+                      return Container(
+                        margin: const EdgeInsets.all(8.0),
+                        width: 32.0,
+                        height: 32.0,
+                        child: const CircularProgressIndicator(),
+                      );
+                    case ButtonState.paused:
+                      return IconButton(
+                        icon: const Icon(Icons.play_arrow),
+                        iconSize: 32.0,
+                        onPressed: _pageManager.play,
+                      );
+                    case ButtonState.playing:
+                      return IconButton(
+                        icon: const Icon(Icons.pause),
+                        iconSize: 32.0,
+                        onPressed: _pageManager.pause,
+                      );
+                  }
                 },
-                child: const Text('Horse'),
               ),
             ],
           ),

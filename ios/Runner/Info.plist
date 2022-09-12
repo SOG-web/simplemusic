@@ -46,4 +46,11 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 </dict>
+<key>NSAppTransportSecurity</key>
+  <dict>
+    <key>NSAllowsArbitraryLoads</key>
+    <true/>
+  </dict>
+<key>NSMicrophoneUsageDescription</key>
+<string>This app needs your permission to use microphone in order to work properly</string>
 </plist>
