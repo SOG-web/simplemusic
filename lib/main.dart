@@ -4,27 +4,28 @@ import 'notifiers/play_button_notifier.dart';
 import 'notifiers/progress_notifier.dart';
 import 'notifiers/repeat_button_notifier.dart';
 import 'page_manager.dart';
+import 'services/service_locator.dart';
 
-void main() => runApp(MyApp());
+void main() async {
+  await setupServiceLocator();
+  runApp(MyApp());
+}
 
 class MyApp extends StatefulWidget {
   @override
   _MyAppState createState() => _MyAppState();
 }
 
-// use GetIt or Provider rather than a global variable in a real project
-late final PageManager _pageManager;
-
 class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _pageManager = PageManager();
+    getIt<PageManager>().init();
   }
 
   @override
   void dispose() {
-    _pageManager.dispose();
+    getIt<PageManager>().dispose();
     super.dispose();
   }
 
@@ -53,8 +54,9 @@ class CurrentSongTitle extends StatelessWidget {
   const CurrentSongTitle({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    final pageManager = getIt<PageManager>();
     return ValueListenableBuilder<String>(
-      valueListenable: _pageManager.currentSongTitleNotifier,
+      valueListenable: pageManager.currentSongTitleNotifier,
       builder: (_, title, __) {
         return Padding(
           padding: const EdgeInsets.only(top: 8.0),
@@ -65,20 +67,23 @@ class CurrentSongTitle extends StatelessWidget {
   }
 }
 
+// tools:ignore="Instantiatable"
+
 class Playlist extends StatelessWidget {
   const Playlist({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    final pageManager = getIt<PageManager>();
     return Expanded(
       child: ValueListenableBuilder<List<String>>(
-        valueListenable: _pageManager.playlistNotifier,
+        valueListenable: pageManager.playlistNotifier,
         builder: (context, playlistTitles, _) {
           return ListView.builder(
             itemCount: playlistTitles.length,
             itemBuilder: (context, index) {
               return ListTile(
                 title: ValueListenableBuilder(
-                  valueListenable: _pageManager.currentSongIndexNotifier,
+                  valueListenable: pageManager.currentSongIndexNotifier,
                   builder: (context, value, _) {
                     return Text(
                       playlistTitles[index],
@@ -88,7 +93,7 @@ class Playlist extends StatelessWidget {
                     );
                   },
                 ),
-                onTap: () => _pageManager.playSpecificSong(index),
+                onTap: () => pageManager.skipToSpecificSong(index),
               );
             },
           );
@@ -102,17 +107,18 @@ class AddRemoveSongButtons extends StatelessWidget {
   const AddRemoveSongButtons({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    final pageManager = getIt<PageManager>();
     return Padding(
       padding: const EdgeInsets.only(bottom: 20.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           FloatingActionButton(
-            onPressed: _pageManager.addSong,
+            onPressed: pageManager.add,
             child: const Icon(Icons.add),
           ),
           FloatingActionButton(
-            onPressed: _pageManager.removeSong,
+            onPressed: pageManager.remove,
             child: const Icon(Icons.remove),
           ),
         ],
@@ -125,14 +131,15 @@ class AudioProgressBar extends StatelessWidget {
   const AudioProgressBar({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    final pageManager = getIt<PageManager>();
     return ValueListenableBuilder<ProgressBarState>(
-      valueListenable: _pageManager.progressNotifier,
+      valueListenable: pageManager.progressNotifier,
       builder: (_, value, __) {
         return ProgressBar(
           progress: value.current,
           buffered: value.buffered,
           total: value.total,
-          onSeek: _pageManager.seek,
+          onSeek: pageManager.seek,
         );
       },
     );
@@ -163,8 +170,9 @@ class RepeatButton extends StatelessWidget {
   const RepeatButton({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    final pageManager = getIt<PageManager>();
     return ValueListenableBuilder<RepeatState>(
-      valueListenable: _pageManager.repeatButtonNotifier,
+      valueListenable: pageManager.repeatButtonNotifier,
       builder: (context, value, child) {
         Icon icon;
         switch (value) {
@@ -180,7 +188,7 @@ class RepeatButton extends StatelessWidget {
         }
         return IconButton(
           icon: icon,
-          onPressed: _pageManager.onRepeatButtonPressed,
+          onPressed: pageManager.repeat,
         );
       },
     );
@@ -191,13 +199,13 @@ class PreviousSongButton extends StatelessWidget {
   const PreviousSongButton({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    final pageManager = getIt<PageManager>();
     return ValueListenableBuilder<bool>(
-      valueListenable: _pageManager.isFirstSongNotifier,
+      valueListenable: pageManager.isFirstSongNotifier,
       builder: (_, isFirst, __) {
         return IconButton(
           icon: const Icon(Icons.skip_previous),
-          onPressed:
-              (isFirst) ? null : _pageManager.onPreviousSongButtonPressed,
+          onPressed: (isFirst) ? null : pageManager.previous,
         );
       },
     );
@@ -208,8 +216,9 @@ class PlayButton extends StatelessWidget {
   const PlayButton({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    final pageManager = getIt<PageManager>();
     return ValueListenableBuilder<ButtonState>(
-      valueListenable: _pageManager.playButtonNotifier,
+      valueListenable: pageManager.playButtonNotifier,
       builder: (_, value, __) {
         switch (value) {
           case ButtonState.loading:
@@ -223,13 +232,13 @@ class PlayButton extends StatelessWidget {
             return IconButton(
               icon: const Icon(Icons.play_arrow),
               iconSize: 32.0,
-              onPressed: _pageManager.play,
+              onPressed: pageManager.play,
             );
           case ButtonState.playing:
             return IconButton(
               icon: const Icon(Icons.pause),
               iconSize: 32.0,
-              onPressed: _pageManager.pause,
+              onPressed: pageManager.pause,
             );
         }
       },
@@ -241,12 +250,13 @@ class NextSongButton extends StatelessWidget {
   const NextSongButton({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    final pageManager = getIt<PageManager>();
     return ValueListenableBuilder<bool>(
-      valueListenable: _pageManager.isLastSongNotifier,
+      valueListenable: pageManager.isLastSongNotifier,
       builder: (_, isLast, __) {
         return IconButton(
           icon: const Icon(Icons.skip_next),
-          onPressed: (isLast) ? null : _pageManager.onNextSongButtonPressed,
+          onPressed: (isLast) ? null : pageManager.next,
         );
       },
     );
@@ -257,14 +267,15 @@ class ShuffleButton extends StatelessWidget {
   const ShuffleButton({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    final pageManager = getIt<PageManager>();
     return ValueListenableBuilder<bool>(
-      valueListenable: _pageManager.isShuffleModeEnabledNotifier,
+      valueListenable: pageManager.isShuffleModeEnabledNotifier,
       builder: (context, isEnabled, child) {
         return IconButton(
           icon: (isEnabled)
               ? const Icon(Icons.shuffle)
               : const Icon(Icons.shuffle, color: Colors.grey),
-          onPressed: _pageManager.onShuffleButtonPressed,
+          onPressed: pageManager.shuffle,
         );
       },
     );

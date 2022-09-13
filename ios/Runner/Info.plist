@@ -53,4 +53,8 @@
   </dict>
 <key>NSMicrophoneUsageDescription</key>
 <string>This app needs your permission to use microphone in order to work properly</string>
+ <key>UIBackgroundModes</key>
+  <array>
+    <string>audio</string>
+  </array>
 </plist>
